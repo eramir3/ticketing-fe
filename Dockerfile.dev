@@ -1,0 +1,11 @@
+FROM node:alpine
+
+WORKDIR /app
+
+# Install deps in a separate layer to maximize cache hits
+COPY package.json package-lock.json ./
+RUN npm ci --no-audit --progress=false
+
+COPY . .
+
+CMD ["npm", "run", "dev"]
