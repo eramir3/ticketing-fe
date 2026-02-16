@@ -17,16 +17,16 @@ async function signup(
   try {
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
-    const result = await doRequest(
-      ApiUsers.Signup,
-      HttpMethod.Post,
-      async (res) => {
+    const result = await doRequest({
+      url: ApiUsers.Signup,
+      method: HttpMethod.Post,
+      body: { email, password },
+      fallbackMessage: 'Signup failed',
+      onSuccess: async (res) => {
         // 🔥 Extract cookie from auth service response
         await setSessionCookieFromResponse(res);
       },
-      { email, password },
-      'Signup failed',
-    );
+    });
 
     if (!result.ok) {
       return { errors: result.errors };
