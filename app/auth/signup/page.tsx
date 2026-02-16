@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
-import { setSessionCookieFromResponse } from '../../lib/auth';
+import { doRequest } from '../../api/request';
+import { setSessionCookieFromResponse } from '../../lib/cookies';
 import SignupForm from './signup-form';
 
 type SignupState = {
@@ -15,32 +16,23 @@ async function signup(
   try {
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
-    const body = JSON.stringify({ email, password })
-
-    const res = await fetch('http://auth-srv:3000/api/users/signup', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
+    const result = await doRequest(
+      '/api/users/signup',
+      'POST',
+      { email, password },
+      async (res) => {
+        // 🔥 Extract cookie from auth service response
+        await setSessionCookieFromResponse(res);
       },
-      body,
-      cache: 'no-store',
-    });
+      'Signup failed',
+    );
 
-    if (!res.ok) {
-      const data = await res.json().catch(() => null);
-      const errors = Array.isArray(data?.errors)
-        ? data.errors
-        : [{ message: 'Signup failed' }];
-      return {
-        errors,
-      };
+    if (!result.ok) {
+      return { errors: result.errors };
     }
-
-    // 🔥 Extract cookie from auth service response
-    await setSessionCookieFromResponse(res);
   } catch (error) {
     console.error('Signup failed', error);
-    return { errors: [{ message: 'Network error. Try again.' }] };
+    return { errors: [{ message: 'Network error. Try again.!!!' }] };
   }
   redirect('/');
 }
