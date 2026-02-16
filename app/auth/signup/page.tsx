@@ -1,5 +1,5 @@
-import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { setSessionCookieFromResponse } from '../../lib/auth';
 import SignupForm from './signup-form';
 
 type SignupState = {
@@ -37,21 +37,7 @@ async function signup(
     }
 
     // 🔥 Extract cookie from auth service response
-    const setCookie = res.headers.get('set-cookie');
-
-    if (setCookie) {
-      const cookieStore = await cookies();
-      const sessionValue = setCookie
-        .split('session=')[1]
-        .split(';')[0];
-
-      cookieStore.set({
-        name: 'session',
-        value: sessionValue,
-        httpOnly: true,
-        path: '/',
-      });
-    }
+    await setSessionCookieFromResponse(res);
   } catch (error) {
     console.error('Signup failed', error);
     return { errors: [{ message: 'Network error. Try again.' }] };
