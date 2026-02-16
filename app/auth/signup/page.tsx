@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { doRequest, HttpMethod } from '../../api/request';
 import { ApiUsers } from '../../api/routes';
 import { setSessionCookieFromResponse } from '../../lib/cookies';
+import { rethrowNextErrors } from '../../lib/next-errors';
 import SignupForm from './signup-form';
 
 type SignupState = {
@@ -31,11 +32,12 @@ async function signup(
     if (!result.ok) {
       return { errors: result.errors };
     }
+    redirect('/');
   } catch (error) {
+    rethrowNextErrors(error);
     console.error('Signup failed', error);
     return { errors: [{ message: 'Network error. Try again.!!!' }] };
   }
-  redirect('/');
 }
 
 export default function SignupPage() {

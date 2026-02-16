@@ -1,6 +1,6 @@
-export default function Home() {
-  console.log("Home component rendered!!");
+export default function LandigPage() {
+  console.log("Landing Page component rendered!!");
   return (
-    <div className="">Home!!</div>
+    <div className="">Landing Page</div>
   );
 }
