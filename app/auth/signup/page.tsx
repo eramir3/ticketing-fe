@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
-import { doRequest } from '../../api/request';
+import { doRequest, HttpMethod } from '../../api/request';
+import { ApiUsers } from '../../api/routes';
 import { setSessionCookieFromResponse } from '../../lib/cookies';
 import SignupForm from './signup-form';
 
@@ -17,13 +18,13 @@ async function signup(
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
     const result = await doRequest(
-      '/api/users/signup',
-      'POST',
-      { email, password },
+      ApiUsers.Signup,
+      HttpMethod.Post,
       async (res) => {
         // 🔥 Extract cookie from auth service response
         await setSessionCookieFromResponse(res);
       },
+      { email, password },
       'Signup failed',
     );
 

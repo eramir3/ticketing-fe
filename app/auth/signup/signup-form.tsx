@@ -1,6 +1,7 @@
 'use client';
 
 import { useActionState } from 'react';
+import FormErrors from '../../components/form-errors';
 
 type SignupState = {
   errors: { message: string; field?: string }[] | null;
@@ -42,15 +43,7 @@ export default function SignupForm({
         />
       </div>
 
-      {state.errors?.length ? (
-        <ul className="text-sm text-red-600 space-y-1">
-          {state.errors.map((error, index) => (
-            <li key={`${error.field ?? 'general'}-${index}`}>
-              {error.message}
-            </li>
-          ))}
-        </ul>
-      ) : null}
+      <FormErrors errors={state.errors} />
 
       <button
         type="submit"
