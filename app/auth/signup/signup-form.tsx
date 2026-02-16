@@ -2,12 +2,9 @@
 
 import { useActionState } from 'react';
 import FormErrors from '../../components/form-errors';
+import { SignupState } from './page';
 
-type SignupState = {
-  errors: { message: string; field?: string }[] | null;
-};
-
-const initialState: SignupState = { errors: null };
+const initialState: SignupState = { errors: undefined };
 
 export default function SignupForm({
   action,

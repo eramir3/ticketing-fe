@@ -1,13 +1,13 @@
 import { redirect } from 'next/navigation';
-import { doRequest, HttpMethod } from '../../api/request';
+import { AuthError, doRequest, HttpMethod } from '../../api/request';
 import { ApiUsers } from '../../api/routes';
 import { setSessionCookieFromResponse } from '../../lib/cookies';
-import { rethrowNextErrors } from '../../lib/next-errors';
 import SignupForm from './signup-form';
 
-type SignupState = {
-  errors: { message: string; field?: string }[] | null;
-};
+export type SignupState = {
+  res?: Response;
+  errors?: AuthError[];
+}
 
 async function signup(
   _prevState: SignupState,
@@ -15,29 +15,20 @@ async function signup(
 ): Promise<SignupState> {
   'use server';
 
-  try {
-    const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
-    const result = await doRequest({
-      url: ApiUsers.Signup,
-      method: HttpMethod.Post,
-      body: { email, password },
-      fallbackMessage: 'Signup failed',
-      onSuccess: async (res) => {
-        // 🔥 Extract cookie from auth service response
-        await setSessionCookieFromResponse(res);
-      },
-    });
-
-    if (!result.ok) {
-      return { errors: result.errors };
-    }
-    redirect('/');
-  } catch (error) {
-    rethrowNextErrors(error);
-    console.error('Signup failed', error);
-    return { errors: [{ message: 'Network error. Try again.!!!' }] };
-  }
+  const email = formData.get('email') as string;
+  const password = formData.get('password') as string;
+  const result = await doRequest({
+    url: ApiUsers.Signup,
+    method: HttpMethod.Post,
+    body: { email, password },
+    fallbackMessage: 'Signup failed',
+    onSuccess: async (res) => {
+      // 🔥 Extract cookie from auth service response
+      await setSessionCookieFromResponse(res);
+      redirect('/');
+    },
+  });
+  return result
 }
 
 export default function SignupPage() {

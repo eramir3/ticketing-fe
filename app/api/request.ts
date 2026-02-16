@@ -1,3 +1,4 @@
+import { rethrowNextErrors } from "../lib/next-errors";
 import { buildFetchClient } from "./build-client";
 
 export type AuthError = { message: string; field?: string };
@@ -40,39 +41,42 @@ export async function doRequest({
   body,
   fallbackMessage,
   query,
-}: DoRequestOptions): Promise<
-  | { ok: true; res: Response }
-  | { ok: false; errors: AuthError[] }
-> {
-  let res: Response;
-  const hasBody =
-    body !== undefined &&
-    body !== null &&
-    method !== HttpMethod.Get &&
-    method !== HttpMethod.Head;
-  const resolvedUrl = query ? appendQueryParams(url, query) : url;
+}: DoRequestOptions): Promise<{ res?: Response, errors?: AuthError[] }> {
+  try {
+    let res: Response;
+    const hasBody =
+      body !== undefined &&
+      body !== null &&
+      method !== HttpMethod.Get &&
+      method !== HttpMethod.Head;
+    const resolvedUrl = query ? appendQueryParams(url, query) : url;
 
-  const fetchClient = await buildFetchClient();
-  res = await fetchClient(resolvedUrl, {
-    cache: 'no-store',
-    method,
-    headers: hasBody ? { 'Content-Type': 'application/json' } : undefined,
-    body: hasBody ? JSON.stringify(body) : undefined,
-  });
+    const fetchClient = await buildFetchClient();
+    res = await fetchClient(resolvedUrl, {
+      cache: 'no-store',
+      method,
+      headers: hasBody ? { 'Content-Type': 'application/json' } : undefined,
+      body: hasBody ? JSON.stringify(body) : undefined,
+    });
 
-  if (res.ok) {
-    if (onSuccess) {
-      await onSuccess(res);
+    if (res.ok) {
+      if (onSuccess) {
+        await onSuccess(res);
+      }
+      return { res };
     }
-    return { ok: true, res };
+
+    const data = await res.json().catch(() => null);
+    const errors = Array.isArray(data?.errors)
+      ? (data.errors as AuthError[])
+      : [{ message: fallbackMessage ?? 'An error occurred' }];
+
+    return { errors };
   }
-
-  const data = await res.json().catch(() => null);
-  const errors = Array.isArray(data?.errors)
-    ? (data.errors as AuthError[])
-    : [{ message: fallbackMessage ?? 'An error occurred' }];
-
-  return { ok: false, errors };
+  catch (error) {
+    rethrowNextErrors(error);
+    return { errors: [{ message: 'Network error. Try again.' }] };
+  }
 }
 
 function appendQueryParams(url: string, query: QueryParams): string {
