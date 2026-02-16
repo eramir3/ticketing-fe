@@ -9,14 +9,11 @@ export type QueryParams = Record<
 >;
 
 // Usage example (GET with query params)
-// await doRequest(
-//   '/api/users',
-//   HttpMethod.Get,
-//   async () => {},
-//   undefined,
-//   undefined,
-//   { page: 1, search: 'test', tags: ['a', 'b'] }
-// );
+// await doRequest({
+//   url: '/api/users',
+//   method: HttpMethod.Get,
+//   query: { page: 1, search: 'test', tags: ['a', 'b'] },
+// });
 
 export enum HttpMethod {
   Get = 'GET',

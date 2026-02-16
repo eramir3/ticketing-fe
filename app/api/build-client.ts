@@ -1,4 +1,5 @@
 import { headers } from 'next/headers';
+import { API_BASE_URL } from '../lib/config';
 
 export async function buildFetchClient() {
   if (typeof window === 'undefined') {
@@ -7,7 +8,7 @@ export async function buildFetchClient() {
     const authorization = incomingHeaders.get('authorization') ?? '';
 
     return async (path: string, options: RequestInit = {}) => {
-      return fetch(`http://ingress-nginx-controller.ingress-nginx.svc.cluster.local${path}`, {
+      return fetch(`${API_BASE_URL}${path}`, {
         ...options,
         headers: {
           ...(cookie ? { cookie } : {}),
