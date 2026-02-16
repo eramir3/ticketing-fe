@@ -4,7 +4,9 @@ import { API_BASE_URL } from '../lib/config';
 export async function buildFetchClient() {
   if (typeof window === 'undefined') {
     const incomingHeaders = await headers();
-    const cookie = incomingHeaders.get('cookie') ?? '';
+    const cookie = decodeSessionCookieHeader(
+      incomingHeaders.get('cookie') ?? '',
+    );
     const authorization = incomingHeaders.get('authorization') ?? '';
 
     return async (path: string, options: RequestInit = {}) => {
@@ -24,4 +26,24 @@ export async function buildFetchClient() {
   return async (path: string, options: RequestInit = {}) => {
     return fetch(path, options);
   };
+}
+
+function decodeSessionCookieHeader(cookieHeader: string): string {
+  if (!cookieHeader) return cookieHeader;
+  const parts = cookieHeader.split(';').map((part) => part.trim());
+  let updated = false;
+
+  const decodedParts = parts.map((part) => {
+    if (!part.startsWith('session=')) return part;
+    const value = part.slice('session='.length);
+    try {
+      const decoded = decodeURIComponent(value);
+      updated = true;
+      return `session=${decoded}`;
+    } catch {
+      return part;
+    }
+  });
+
+  return updated ? decodedParts.join('; ') : cookieHeader;
 }

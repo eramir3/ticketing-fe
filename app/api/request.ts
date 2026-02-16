@@ -32,16 +32,32 @@ type DoRequestOptions = {
   body?: unknown;
   fallbackMessage?: string;
   query?: QueryParams;
+  forwardSession?: boolean;
 };
 
-export async function doRequest({
+type RequestSuccess<T> = {
+  ok: true;
+  res: Response;
+  data: T | null;
+};
+
+type RequestFailure<E = AuthError[]> = {
+  ok: false;
+  errors: E;
+};
+
+type RequestResult<T, E = AuthError[]> =
+  | RequestSuccess<T>
+  | RequestFailure<E>;
+
+export async function doRequest<T>({
   url,
   method = HttpMethod.Get,
   onSuccess,
   body,
   fallbackMessage,
   query,
-}: DoRequestOptions): Promise<{ res?: Response, errors?: AuthError[] }> {
+}: DoRequestOptions): Promise<RequestResult<T>> {
   try {
     let res: Response;
     const hasBody =
@@ -63,7 +79,8 @@ export async function doRequest({
       if (onSuccess) {
         await onSuccess(res);
       }
-      return { res };
+      const data = (await res.json().catch(() => null)) as T | null;
+      return { ok: true, res, data };
     }
 
     const data = await res.json().catch(() => null);
@@ -71,11 +88,11 @@ export async function doRequest({
       ? (data.errors as AuthError[])
       : [{ message: fallbackMessage ?? 'An error occurred' }];
 
-    return { errors };
+    return { ok: false, errors };
   }
   catch (error) {
     rethrowNextErrors(error);
-    return { errors: [{ message: 'Network error. Try again.' }] };
+    return { ok: false, errors: [{ message: 'Network error. Try again.' }] };
   }
 }
 
