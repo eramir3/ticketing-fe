@@ -52,12 +52,11 @@ async function signup(
         path: '/',
       });
     }
-
-    redirect('/');
   } catch (error) {
     console.error('Signup failed', error);
     return { errors: [{ message: 'Network error. Try again.' }] };
   }
+  redirect('/');
 }
 
 export default function SignupPage() {
