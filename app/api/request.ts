@@ -35,20 +35,11 @@ type DoRequestOptions = {
   forwardSession?: boolean;
 };
 
-type RequestSuccess<T> = {
-  ok: true;
-  res: Response;
+type RequestResult<T> = {
+  res: Response | null;
   data: T | null;
+  errors: AuthError[] | null;
 };
-
-type RequestFailure<E = AuthError[]> = {
-  ok: false;
-  errors: E;
-};
-
-type RequestResult<T, E = AuthError[]> =
-  | RequestSuccess<T>
-  | RequestFailure<E>;
 
 export async function doRequest<T>({
   url,
@@ -80,7 +71,7 @@ export async function doRequest<T>({
         await onSuccess(res);
       }
       const data = (await res.json().catch(() => null)) as T | null;
-      return { ok: true, res, data };
+      return { res, data, errors: null };
     }
 
     const data = await res.json().catch(() => null);
@@ -88,11 +79,11 @@ export async function doRequest<T>({
       ? (data.errors as AuthError[])
       : [{ message: fallbackMessage ?? 'An error occurred' }];
 
-    return { ok: false, errors };
+    return { res, data: null, errors };
   }
   catch (error) {
     rethrowNextErrors(error);
-    return { ok: false, errors: [{ message: 'Network error. Try again.' }] };
+    return { res: null, data: null, errors: [{ message: 'Network error. Try again.' }] };
   }
 }
 

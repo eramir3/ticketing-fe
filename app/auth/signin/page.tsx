@@ -24,11 +24,7 @@ async function signin(
       redirect('/');
     },
   });
-
-  if (!result.ok) {
-    return { errors: result.errors };
-  }
-  return { errors: null };
+  return { errors: result.errors };
 }
 
 export default function SigninPage() {

@@ -3,7 +3,7 @@ import { doRequest, HttpMethod } from '../../api/request';
 import { ApiUsers } from '../../api/routes';
 import { setSessionCookieFromResponse } from '../../lib/cookies';
 import SignupForm from './signup-form';
-import type { SignupState } from './types';
+import type { CurrentUser, SignupState } from './types';
 
 async function signup(
   _prevState: SignupState,
@@ -13,7 +13,7 @@ async function signup(
 
   const email = formData.get('email') as string;
   const password = formData.get('password') as string;
-  const result = await doRequest<{ email: string; id: string }>({
+  const result = await doRequest<CurrentUser>({
     url: ApiUsers.Signup,
     method: HttpMethod.Post,
     body: { email, password },
@@ -24,11 +24,7 @@ async function signup(
       redirect('/');
     },
   });
-
-  if (!result.ok) {
-    return { errors: result.errors };
-  }
-  return { errors: null };
+  return { errors: result.errors };
 }
 
 export default function SignupPage() {
