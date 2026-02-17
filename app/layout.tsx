@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./lib/config";
 import "./globals.css";
 import Header from "./components/header";
-import { doRequest } from "./api/request";
+import { serverFetch } from "./api/server-fetch";
 import { CurrentUser } from "./auth/signup/types";
 import { ApiUsers } from "./api/routes";
 
@@ -28,7 +28,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
 
-  const result = await doRequest<CurrentUser>({
+  const result = await serverFetch<CurrentUser>({
     url: ApiUsers.CurrentUser,
     fallbackMessage: 'Failed to retrieve current user',
   });
@@ -38,7 +38,7 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Header currentUser={result?.data?.currentUser ?? null} />
+        <Header currentUser={result.ok && result?.data?.currentUser ? result?.data?.currentUser : null} />
         {children}
       </body>
     </html>

@@ -1,9 +1,10 @@
 import { redirect } from 'next/navigation';
-import { doRequest, HttpMethod } from '../../api/request';
+import { serverFetch } from '../../api/server-fetch';
 import { ApiUsers } from '../../api/routes';
 import { setSessionCookieFromResponse } from '../../lib/cookies';
 import SignupForm from './signup-form';
 import type { CurrentUser, SignupState } from './types';
+import { HttpMethod } from '../signin/types';
 
 async function signup(
   _prevState: SignupState,
@@ -13,7 +14,7 @@ async function signup(
 
   const email = formData.get('email') as string;
   const password = formData.get('password') as string;
-  const result = await doRequest<CurrentUser>({
+  const result = await serverFetch<CurrentUser>({
     url: ApiUsers.Signup,
     method: HttpMethod.Post,
     body: { email, password },
@@ -24,7 +25,10 @@ async function signup(
       redirect('/');
     },
   });
-  return { errors: result.errors };
+  if (!result.ok) {
+    return { errors: result.errors };
+  }
+  return { errors: null };
 }
 
 export default function SignupPage() {

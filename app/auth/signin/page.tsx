@@ -1,9 +1,9 @@
 import { redirect } from 'next/navigation';
-import { doRequest, HttpMethod } from '../../api/request';
+import { serverFetch } from '../../api/server-fetch';
 import { ApiUsers } from '../../api/routes';
 import { setSessionCookieFromResponse } from '../../lib/cookies';
 import SigninForm from './signin-form';
-import type { SigninState } from './types';
+import { HttpMethod, type SigninState } from './types';
 
 async function signin(
   _prevState: SigninState,
@@ -13,7 +13,7 @@ async function signin(
 
   const email = formData.get('email') as string;
   const password = formData.get('password') as string;
-  const result = await doRequest<{ email: string; id: string }>({
+  const result = await serverFetch<{ email: string; id: string }>({
     url: ApiUsers.Signin,
     method: HttpMethod.Post,
     body: { email, password },
@@ -24,7 +24,10 @@ async function signin(
       redirect('/');
     },
   });
-  return { errors: result.errors };
+  if (!result.ok) {
+    return { errors: result.errors };
+  }
+  return { errors: null };
 }
 
 export default function SigninPage() {

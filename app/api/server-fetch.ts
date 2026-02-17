@@ -1,5 +1,6 @@
+import { HttpMethod } from "../auth/signin/types";
 import { rethrowNextErrors } from "../lib/next-errors";
-import { buildFetchClient } from "./build-client";
+import { buildServerFetchClient } from "./build-server-client";
 
 export type AuthError = { message: string; field?: string };
 
@@ -16,15 +17,6 @@ export type QueryParams = Record<
 //   query: { page: 1, search: 'test', tags: ['a', 'b'] },
 // });
 
-export enum HttpMethod {
-  Get = 'GET',
-  Head = 'HEAD',
-  Post = 'POST',
-  Put = 'PUT',
-  Patch = 'PATCH',
-  Delete = 'DELETE',
-}
-
 type DoRequestOptions = {
   url: string;
   method?: HttpMethod;
@@ -35,13 +27,22 @@ type DoRequestOptions = {
   forwardSession?: boolean;
 };
 
-type RequestResult<T> = {
-  res: Response | null;
+type RequestSuccess<T> = {
+  ok: true;
+  res: Response;
   data: T | null;
-  errors: AuthError[] | null;
 };
 
-export async function doRequest<T>({
+type RequestFailure<E = AuthError[]> = {
+  ok: false;
+  errors: E;
+};
+
+type RequestResult<T, E = AuthError[]> =
+  | RequestSuccess<T>
+  | RequestFailure<E>;
+
+export async function serverFetch<T>({
   url,
   method = HttpMethod.Get,
   onSuccess,
@@ -58,7 +59,7 @@ export async function doRequest<T>({
       method !== HttpMethod.Head;
     const resolvedUrl = query ? appendQueryParams(url, query) : url;
 
-    const fetchClient = await buildFetchClient();
+    const fetchClient = await buildServerFetchClient();
     res = await fetchClient(resolvedUrl, {
       cache: 'no-store',
       method,
@@ -71,7 +72,7 @@ export async function doRequest<T>({
         await onSuccess(res);
       }
       const data = (await res.json().catch(() => null)) as T | null;
-      return { res, data, errors: null };
+      return { ok: true, res, data };
     }
 
     const data = await res.json().catch(() => null);
@@ -79,11 +80,11 @@ export async function doRequest<T>({
       ? (data.errors as AuthError[])
       : [{ message: fallbackMessage ?? 'An error occurred' }];
 
-    return { res, data: null, errors };
+    return { ok: false, errors };
   }
   catch (error) {
     rethrowNextErrors(error);
-    return { res: null, data: null, errors: [{ message: 'Network error. Try again.' }] };
+    return { ok: false, errors: [{ message: 'Network error. Try again.' }] };
   }
 }
 
