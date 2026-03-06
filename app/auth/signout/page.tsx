@@ -6,13 +6,23 @@ import { HttpMethod } from "../signin/types";
 
 export default function SignoutPage() {
   useEffect(() => {
-    (async () => {
-      const result = await fetch(ApiUsers.Signout, { method: HttpMethod.Post });
-      // Force a full reload so the server re-renders Header with the new cookie
-      if (result.ok) {
+    const signOut = async () => {
+      try {
+        const response = await fetch(ApiUsers.Signout, {
+          method: HttpMethod.Post,
+        });
+
+        if (!response.ok) {
+          throw new Error("Signout failed");
+        }
+
         window.location.assign("/");
+      } catch (error) {
+        console.error("Error during signout:", error);
       }
-    })();
+    };
+
+    signOut();
   }, []);
 
   return <div>Signing you out...</div>;
