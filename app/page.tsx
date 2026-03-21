@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { buildServerFetchClient } from './api/build-server-client';
 import { ApiGateway } from './api/routes';
 
@@ -100,9 +101,10 @@ export default async function LandingPage() {
         {tickets.length > 0 ? (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {tickets.map((ticket) => (
-              <article
+              <Link
                 key={ticket.id}
-                className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm"
+                href={`/tickets/${ticket.id}`}
+                className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
               >
                 <h2 className="text-2xl font-semibold text-gray-900">
                   {ticket.title ?? 'Untitled Ticket'}
@@ -116,7 +118,10 @@ export default async function LandingPage() {
                     ? ticket.price.toFixed(2)
                     : '--'}
                 </p>
-              </article>
+                <p className="mt-6 text-sm font-medium text-blue-700">
+                  View details
+                </p>
+              </Link>
             ))}
           </div>
         ) : null}
