@@ -2,11 +2,6 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { buildServerFetchClient } from '../../api/build-server-client';
 import { ApiGateway } from '../../api/routes';
-import type { FormError } from '../../components/form-errors';
-import { rethrowNextErrors } from '../../lib/next-errors';
-import PurchaseTicketForm, {
-  type PurchaseTicketState,
-} from './purchase-ticket-form';
 
 const TICKET_QUERY = `
   query Ticket($id: String!) {
@@ -14,16 +9,6 @@ const TICKET_QUERY = `
       id
       title
       price
-    }
-  }
-`;
-
-const CREATE_ORDER_MUTATION = `
-  mutation CreateOrder($createOrderInput: CreateOrderInput!) {
-    createOrder(createOrderInput: $createOrderInput) {
-      id
-      status
-      expiresAt
     }
   }
 `;
@@ -42,18 +27,7 @@ type GraphqlResponse<T> = {
   data?: T;
   errors?: Array<{
     message?: string;
-    extensions?: {
-      errors?: FormError[];
-    };
   }>;
-};
-
-type CreateOrderMutationResponse = {
-  createOrder: {
-    id: string;
-    status: string | null;
-    expiresAt: string | null;
-  };
 };
 
 async function fetchTicket(ticketId: string): Promise<{
@@ -105,125 +79,6 @@ async function fetchTicket(ticketId: string): Promise<{
   }
 }
 
-async function createOrder(
-  _prevState: PurchaseTicketState,
-  formData: FormData,
-): Promise<PurchaseTicketState> {
-  'use server';
-
-  const ticketId = String(formData.get('ticketId') ?? '').trim();
-
-  if (!ticketId) {
-    return {
-      errors: [{ field: 'ticketId', message: 'Ticket ID is required' }],
-      order: null,
-    };
-  }
-
-  const result = await submitCreateOrder(ticketId);
-
-  if (!result.ok) {
-    return {
-      errors: result.errors,
-      order: null,
-    };
-  }
-
-  return {
-    errors: null,
-    order: result.order,
-  };
-}
-
-async function submitCreateOrder(
-  ticketId: string,
-): Promise<
-  | {
-      ok: true;
-      order: {
-        id: string;
-        status: string | null;
-        expiresAt: string | null;
-      };
-    }
-  | { ok: false; errors: FormError[] }
-> {
-  try {
-    const fetchClient = await buildServerFetchClient();
-    const response = await fetchClient(ApiGateway.Graphql, {
-      cache: 'no-store',
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        query: CREATE_ORDER_MUTATION,
-        variables: {
-          createOrderInput: {
-            ticketId,
-          },
-        },
-      }),
-    });
-
-    const payload =
-      (await response.json().catch(() => null)) as GraphqlResponse<CreateOrderMutationResponse> | null;
-
-    if (
-      !response.ok ||
-      payload?.errors?.length ||
-      !payload?.data?.createOrder
-    ) {
-      return {
-        ok: false,
-        errors: extractGraphqlErrors(payload, 'Order creation failed'),
-      };
-    }
-
-    return {
-      ok: true,
-      order: payload.data.createOrder,
-    };
-  } catch (error) {
-    rethrowNextErrors(error);
-    return {
-      ok: false,
-      errors: [{ message: 'Network error. Try again.' }],
-    };
-  }
-}
-
-function extractGraphqlErrors<T>(
-  payload: GraphqlResponse<T> | null,
-  fallbackMessage: string,
-): FormError[] {
-  const nestedErrors =
-    payload?.errors
-      ?.flatMap((error) => error.extensions?.errors ?? [])
-      .filter(
-        (error): error is FormError =>
-          typeof error?.message === 'string' &&
-          (error.field === undefined || typeof error.field === 'string'),
-      ) ?? [];
-
-  if (nestedErrors.length > 0) {
-    return nestedErrors;
-  }
-
-  const topLevelErrors =
-    payload?.errors
-      ?.map((error) =>
-        typeof error.message === 'string'
-          ? { message: error.message }
-          : null,
-      )
-      .filter((error): error is FormError => error !== null) ?? [];
-
-  return topLevelErrors.length > 0
-    ? topLevelErrors
-    : [{ message: fallbackMessage }];
-}
-
 export default async function TicketDetailsPage({
   params,
 }: {
@@ -269,10 +124,12 @@ export default async function TicketDetailsPage({
                   : '--'}
               </p>
             </div>
-            <PurchaseTicketForm
-              action={createOrder}
-              ticketId={result.ticket.id}
-            />
+            <Link
+              href={`/orders/new?ticketId=${result.ticket.id}`}
+              className="mt-10 inline-flex w-full items-center justify-center rounded-xl bg-blue-600 px-6 py-4 text-lg font-medium text-white transition-colors hover:bg-blue-700"
+            >
+              Purchase Ticket
+            </Link>
           </article>
         )}
       </div>

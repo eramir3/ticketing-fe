@@ -7,6 +7,7 @@ export enum ApiUsers {
 
 export enum ApiGateway {
   Graphql = '/api/gateway/graphql',
+  Payments = '/api/gateway/payments',
 }
 
 // export enum ApiUsers {
