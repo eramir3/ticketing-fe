@@ -5,6 +5,10 @@ export enum ApiUsers {
   CurrentUser = '/api/gateway/auth/current-user',
 }
 
+export enum ApiGateway {
+  Graphql = '/api/gateway/graphql',
+}
+
 // export enum ApiUsers {
 //   Signup = '/api/users/signup',
 //   Signin = '/api/users/signin',

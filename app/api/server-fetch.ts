@@ -51,7 +51,6 @@ export async function serverFetch<T>({
   query,
 }: DoRequestOptions): Promise<RequestResult<T>> {
   try {
-    let res: Response;
     const hasBody =
       body !== undefined &&
       body !== null &&
@@ -60,7 +59,7 @@ export async function serverFetch<T>({
     const resolvedUrl = query ? appendQueryParams(url, query) : url;
 
     const fetchClient = await buildServerFetchClient();
-    res = await fetchClient(resolvedUrl, {
+    const res = await fetchClient(resolvedUrl, {
       cache: 'no-store',
       method,
       headers: hasBody ? { 'Content-Type': 'application/json' } : undefined,

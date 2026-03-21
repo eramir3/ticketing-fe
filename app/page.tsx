@@ -11,5 +11,4 @@ export default async function LandingPage() {
   });
 
   return result.ok && result.data?.currentUser ? <div>Welcome, {result.data.currentUser.email}!</div> : <div>Not signed in</div>;
-  //return result.data?.currentUser ? <div>Welcome, {result.data.currentUser.email}!</div> : <div>Not signed in</div>;
 }

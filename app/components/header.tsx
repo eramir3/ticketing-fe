@@ -5,12 +5,16 @@ import { CurrentUser } from '../auth/signup/types';
 
 const Header = ({ currentUser }: CurrentUser) => {
   const links = [
+    currentUser && { label: 'Sell Tickets', href: '/tickets/new' },
     !currentUser && { label: 'Sign Up', href: '/auth/signup' },
     !currentUser && { label: 'Sign In', href: '/auth/signin' },
     currentUser && { label: 'Sign Out', href: '/auth/signout' },
   ]
-    .filter((linkConfig) => linkConfig)
-    .map(({ label, href }: any) => {
+    .filter(
+      (linkConfig): linkConfig is { label: string; href: string } =>
+        Boolean(linkConfig),
+    )
+    .map(({ label, href }) => {
       return (
         <li key={href}>
           <Link
