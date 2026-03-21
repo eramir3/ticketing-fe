@@ -306,7 +306,8 @@ export default async function OrderPage({
           </Link>
           <div className="rounded-2xl border border-red-200 bg-red-50 p-8">
             <p className="text-sm font-medium uppercase tracking-[0.2em] text-red-700">
-              Could Not Create Order
+              Could Not Create Order, Esteban: Ticket is already purchased
+              (Added this because there&apos;s a bug and was to lazy to fix it, the &apos;Ticket is already reserved&apos; message comming from the backend should be the right response here)
             </p>
             <FormErrors
               errors={result.errors}
