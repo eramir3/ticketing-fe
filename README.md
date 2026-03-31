@@ -1,30 +1,79 @@
-# Ticketing FE
+# 🎟️ Ticketing Frontend (FE)
 
-# To start project
-```
+---
+
+## 🚀 Getting Started
+
+### ▶️ Run locally (standard dev mode)
+
+```bash id="3m9g2k"
+# Starts the frontend using local configuration
 npm run dev
 ```
 
-# To start the frontend against the Kubernetes gateway service
+👉 Access the app at:
+
 ```
-npm run portforward:gateway
+http://localhost:4000
 ```
 
-In another terminal:
-```
+---
+
+## ☸️ Run with Kubernetes Ingress
+
+```bash id="h2x9pd"
+# Starts the frontend configured to work with Kubernetes ingress
 npm run dev:k8s
 ```
 
-This runs the frontend on `http://localhost:4000` and points `AUTH_BASE_URL` and
-`API_BASE_URL` to `http://127.0.0.1:3000`.
+### ⚠️ Important Requirements
 
-# To use ticketing.dev through ingress
+This mode **only works if an ingress resource is configured** for:
+
 ```
-npm run dev:k8s:ingress
+ticketing.dev
 ```
 
-Use this only when an ingress resource for `ticketing.dev` has been applied. If
-`kubectl get ingress -A` shows no resources, `ticketing.dev` will return the
-default NGINX `404 Not Found`.
+---
 
-minikube image build -t ticketing-v2-client -f Dockerfile.dev . --alsologtostderr -v=1
+### 🔍 Verify Ingress Exists
+
+```bash id="z8m1qc"
+kubectl get ingress -A
+```
+
+- If you **see ingress resources** → ✅ you're good to go
+- If you **don’t see anything** → ❌ `ticketing.dev` will NOT work
+
+---
+
+### ❌ Common Issue
+
+If ingress is not configured, visiting:
+
+```
+http://ticketing.dev
+```
+
+will return:
+
+```
+404 Not Found (NGINX default)
+```
+
+---
+
+## 🧠 Notes
+
+- Use `npm run dev` for **simple local development**
+- Use `npm run dev:k8s` when:
+  - You are testing **full system integration**
+  - Backend services are running inside Kubernetes
+
+- Make sure your `/etc/hosts` includes:
+
+  ```
+  minikube-ip ticketing.dev
+  ```
+
+---
