@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 4000 --turbopack",
+    "dev:k8s": "AUTH_BASE_URL=http://ticketing.dev API_BASE_URL=http://ticketing.dev npm run dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
